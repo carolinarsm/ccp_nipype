@@ -1,0 +1,49 @@
+This is the correct Interface for gzip: 
+
+####
+from nipype.interfaces.base import ( 
+	TraitedSpec, 
+	CommandLineInputSpec, 
+	CommandLine, 
+	File 
+) 
+
+import os 
+
+class ZipInputSpec(CommandLineInputSpec): 
+	input_file = File(desc = "File", exists = True, mandatory = True, 
+		argstr="%s") 
+
+class ZipOutputSpec(TraitedSpec): 
+	output_file = File(desc = "Zip file", exists = True) 
+
+class ZipTask(CommandLine): 
+	input_spec = ZipInputSpec 
+	output_spec = ZipOutputSpec 
+	cmd = 'gzip' 
+	
+	def _list_outputs(self): 
+		outputs = self.output_spec().get() 
+		outputs['output_file'] = os.path.abspath(self.inputs.input_file + ".gz") 
+		return outputs 
+
+if __name__ == '__main__': 
+	zipper = ZipTask(input_file='exiting_file') 
+	print zipper.cmdline 
+	zipper.run() 
+
+
+
+####
+
+Every input in InputSpec that has to be translated into a commandline has to have argstr parameter. 
+Here this is a very simple "%s" but you can imagine that it could be something like "--num-iter=%d" for some other interface. 
+Inputs that do not have argstr defined will not be automatically translated into command line arguments. 
+You can print the command line using zipper.cmdline. 
+For you previous attempt this was just "gzip" and when gzip is run without parameters it expects data stream as an input 
+- it never got it, and waited infinitely. 
+Other minor changes: * OutputSpec defines the structure of the data that will be collected and file created by gzip should always exist. 
+* "mandatory" is checked for inputs. 
+* in _list_outputs you have put "output_volume" instead of "output_file", filename was also wrong
+
+ 

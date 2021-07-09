@@ -1,0 +1,161 @@
+from nipype.interfaces.base import  BaseInterface, \
+                                    CommandLine, \
+                                    BaseInterfaceInputSpec, \
+                                    TraitedSpec, \
+                                    CommandLineInputSpec, \
+                                    File
+
+_______________________________
+TRAITED ATTRIBUTES
+
+**Common interface metadata:
+
+exists        --> use trait File for files              --> for example infile = File(exists=True,
+                                                                                    desc= 'input file',
+                                                                                    argstr = '%s', position=0, mandatory=True)
+
+hash_files    --> for inputs that define output filenames
+
+
+
+desc          --> default metadata attribute. A one line doc-string. required by all nipype interfaces
+
+
+usedefault    --> set to True when you want to use the default values of the Trait
+
+
+xor             --> accepts a list, once a value is defined, the rest are set to Undefined
+
+requires        -->
+
+
+copyfile        --> for a File or Directory trait that is relevant in the context of wrapping an interface in a Node or MapNode
+
+
+min_ver/max_ver -->
+
+deprecated/new_name
+
+
+
+**CommandLine interface metadata:
+
+argstr
+position
+genfile
+sep
+name_source
+name_template
+keep_extension
+
+
+
+**SPM metadata
+
+field
+
+
+____________________________
+DEFINING AN INTERFACE CLASS
+
+** Common interface
+    - input_spec        --> the InputSpec
+    - output_spec       --> the OutputSpec
+    - list_outputs()    --> dictionary with all filenames expected to be generated after package completes execution
+
+
+** CommandLine interface
+    - _cmd              --> the command-line command
+    - _gen_filename(name), if used genfile  --> ?
+    - _redirect_x
+    - _format_arg(name, spec, value)
+
+
+** SPM
+    - _jobtype
+    - _jobname
+    - _format_arg(name, spec, value)
+
+
+
+____________
+
+Undefined inputs
+
+All the inputs and outputs that were not explicitly set (And do not have a usedefault flag - see above) will have Undefined value.
+To check if something is defined you have to explicitly call isdefined function (comparing to None will not work).
+
+____________
+____________
+
+SPECS
+
+class Interface(object):
+    """This is an abstract definition for Interface objects.
+
+    It provides no functionality.  It defines the necessary attributes
+    and methods all Interface objects should have.
+
+    """
+
+    input_spec = None  # A traited input specification
+    output_spec = None  # A traited output specification
+
+    _can_resume = False  # defines if the interface can reuse partial results
+                         # after interruption
+
+
+class BaseInterface(Interface):
+    """Implements common interface functionality.
+
+    Implements
+    ----------
+
+    * Initializes inputs/outputs from input_spec/output_spec
+    * Provides help based on input_spec and output_spec
+    * Checks for mandatory inputs before running an interface
+    * Runs an interface and returns results
+    * Determines which inputs should be copied or linked to cwd
+
+    This class does not implement aggregate_outputs, input_spec or
+    output_spec. These should be defined by derived classes.
+
+    This class cannot be instantiated.
+
+    """
+
+class CommandLine(BaseInterface):
+    """Implements functionality to interact with command line programs
+    class must be instantiated with a command argument
+
+    Parameters
+    ----------
+
+    command : string
+        define base immutable `command` you wish to run
+
+    args : string, optional
+        optional arguments passed to base `command`
+
+
+    Examples
+    --------
+
+    >>> from nipype.interfaces.base import CommandLine
+    >>> cli = CommandLine(command='ls', environ={'DISPLAY': ':1'})
+    >>> cli.inputs.args = '-al'
+    >>> cli.cmdline
+    'ls -al'
+
+    >>> cli.inputs.trait_get() # doctest: +NORMALIZE_WHITESPACE
+    {'ignore_exception': False, 'terminal_output': 'stream',
+     'environ': {'DISPLAY': ':1'}, 'args': '-al'}
+
+    >>> cli.inputs.get_hashval()
+    ([('args', '-al')], '11c37f97649cd61627f4afe5136af8c0')
+
+    """
+
+
+
+
